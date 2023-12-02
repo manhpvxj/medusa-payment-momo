@@ -2,7 +2,7 @@ import {
   ELanguage,
   EPayType,
   ERequestType,
-} from "src/common/constants/momo.constant";
+} from "../common/constants/momo.constant";
 
 export interface IItem {
   id: string;
@@ -106,4 +106,8 @@ export interface MomoOptions {
   partnerCode: string;
   accessKey: string;
   secretKey: string;
+  redirectUrl: string;
+  ipnUrl: string;
+  extraData: string;
+  capture?: boolean;
 }

@@ -5,7 +5,7 @@ import {
   ICreatePaymentRequest,
   ICreatePaymentResponse,
   MomoOptions,
-} from "src/types/momo.interface";
+} from "../../types/momo.interface";
 import {
   CheckPaymentStatusDto,
   CreatePaymentDto,
@@ -14,6 +14,8 @@ import {
 import { v4 as uuid } from "uuid";
 import axios, { AxiosRequestConfig, AxiosInstance } from "axios";
 import crypto from "crypto";
+import { CreateOrder, CreateOrderResponse } from "../types";
+import { MedusaError } from "medusa-core-utils";
 
 export const MomoPath = {
   CREATE_PAYMENT: "/v2/gateway/api/create",
@@ -37,18 +39,15 @@ export class MomoService {
   private readonly httpClient: AxiosInstance;
   protected readonly options_: MomoOptions;
 
-  public async createPayment(
+  public async createOrder(
     data: CreatePaymentDto
   ): Promise<ICreatePaymentResponse> {
     const body: ICreatePaymentRequest = {
       ...data,
       partnerCode: this.options_.partnerCode,
-      // subPartnerCode: process.env.MOMO_SUB_PARTNER_CODE,
-      // partnerName: process.env.MOMO_PARTNER_NAME,
-      // storeId: process.env.MOMO_STORE_ID,
       requestId: uuid(),
-      redirectUrl: process.env.MOMO_REDIRECT_URL,
-      ipnUrl: "",
+      redirectUrl: this.options_.redirectUrl,
+      ipnUrl: this.options_.ipnUrl,
       signature: "",
     };
     const rawSignature = `accessKey=${this.options_.accessKey}&amount=${body.amount}&extraData=${body.extraData}&ipnUrl=${body.ipnUrl}&orderId=${body.orderId}&orderInfo=${body.orderInfo}&partnerCode=${body.partnerCode}&redirectUrl=${body.redirectUrl}&requestId=${body.requestId}&requestType=${body.requestType}`;
@@ -64,7 +63,7 @@ export class MomoService {
     return await this.fetcher<ICreatePaymentResponse>(config);
   }
 
-  public async checkPaymentStatus(
+  public async getOrder(
     data: CheckPaymentStatusDto
   ): Promise<ICheckPaymentStatusResponse> {
     const body: ICheckPaymentStatusRequest = {
@@ -138,11 +137,10 @@ export class MomoService {
       const result = res.data;
       return result;
     } catch (error) {
-      this.logger_.error(error);
       // throw new MedusaExc.BusinessException({
       //   message: error.message,
       // });
-      throw new Error(error.message);
+      throw new MedusaError(MedusaError.Types.INVALID_DATA, error?.message);
     }
   }
 }

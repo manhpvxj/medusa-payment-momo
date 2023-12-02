@@ -119,10 +119,6 @@ export class UserInfoDto {
 }
 
 export class CreatePaymentDto {
-  @IsNotEmpty()
-  @IsEnum(EPaymentMethod)
-  paymentMethod!: EPaymentMethod;
-
   @Transform(({ value }) => value && +value)
   @IsNotEmpty()
   @IsPositive()
