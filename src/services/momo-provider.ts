@@ -14,7 +14,7 @@ import { MomoOptions } from "../types/momo.interface";
 import { MedusaError } from "medusa-core-utils";
 
 class MomoProviderService extends AbstractPaymentProcessor {
-  static identifier: string = "Momo";
+  static identifier: string = "momo";
   protected momoService: MomoService;
   protected logger_: Logger | undefined;
   protected options_: MomoOptions;
@@ -63,10 +63,25 @@ class MomoProviderService extends AbstractPaymentProcessor {
     paymentSessionData: Record<string, unknown>
   ): Promise<PaymentSessionStatus> {
     this.logger_.log("status", paymentSessionData);
-
-    const order = await this.retrievePayment(paymentSessionData);
-    this.logger_.info(order);
-    return PaymentSessionStatus.AUTHORIZED;
+    try {
+      const order = (await this.retrievePayment(
+        paymentSessionData
+      )) as PaymentProcessorSessionResponse["session_data"];
+      this.logger_.info(order);
+      switch (order?.resultCode) {
+        case 0:
+          return PaymentSessionStatus.PENDING;
+        case 9000:
+          return PaymentSessionStatus.AUTHORIZED;
+        case 7000:
+        case 7002:
+          return PaymentSessionStatus.PENDING;
+        default:
+          return PaymentSessionStatus.ERROR;
+      }
+    } catch (err) {
+      return PaymentSessionStatus.ERROR;
+    }
   }
 
   async retrievePayment(
@@ -87,9 +102,9 @@ class MomoProviderService extends AbstractPaymentProcessor {
   async updatePayment(
     context: PaymentProcessorContext
   ): Promise<void | PaymentProcessorError | PaymentProcessorSessionResponse> {
-    this.logger_.log("updatePayment", context);
+    const { paymentSessionData } = context;
 
-    return this.initiatePayment(context);
+    return { session_data: paymentSessionData };
   }
 
   async updatePaymentData(sessionId: string, data: Record<string, unknown>) {
@@ -116,13 +131,12 @@ class MomoProviderService extends AbstractPaymentProcessor {
   ): Promise<
     PaymentProcessorError | PaymentProcessorSessionResponse["session_data"]
   > {
-    this.logger_.log("capture", paymentSessionData);
-
-    try {
-      await this.retrievePayment(paymentSessionData);
-    } catch (error) {
-      return this.buildError("An error occurred in capturePayment", error);
-    }
+    return {
+      session_data: {
+        ...paymentSessionData,
+        status: "captured",
+      },
+    };
   }
 
   async refundPayment(
@@ -131,9 +145,7 @@ class MomoProviderService extends AbstractPaymentProcessor {
   ): Promise<Record<string, unknown> | PaymentProcessorError> {
     this.logger_.log("refund", paymentSessionData);
 
-    return {
-      id: "test",
-    };
+    return paymentSessionData;
   }
 
   async authorizePayment(
@@ -167,8 +179,12 @@ class MomoProviderService extends AbstractPaymentProcessor {
   async cancelPayment(
     paymentSessionData: Record<string, unknown>
   ): Promise<Record<string, unknown> | PaymentProcessorError> {
+    this.logger_.log("cancel", paymentSessionData);
     return {
-      id: "test",
+      session_data: {
+        ...paymentSessionData,
+        status: "canceled",
+      },
     };
   }
 
