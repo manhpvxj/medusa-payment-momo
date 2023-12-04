@@ -1,4 +1,8 @@
 import { Logger } from "@medusajs/medusa";
+import axios, { AxiosInstance, AxiosRequestConfig } from "axios";
+import crypto from "crypto";
+import { MedusaError } from "medusa-core-utils";
+import { v4 as uuid } from "uuid";
 import {
   ICheckPaymentStatusRequest,
   ICheckPaymentStatusResponse,
@@ -11,11 +15,6 @@ import {
   CreatePaymentDto,
   IPNDto,
 } from "../dtos/momo.dto";
-import { v4 as uuid } from "uuid";
-import axios, { AxiosRequestConfig, AxiosInstance } from "axios";
-import crypto from "crypto";
-import { CreateOrder, CreateOrderResponse } from "../types";
-import { MedusaError } from "medusa-core-utils";
 
 export const MomoPath = {
   CREATE_PAYMENT: "/v2/gateway/api/create",

@@ -1,24 +1,28 @@
 {
   "name": "medusa-payment-momo",
   "version": "0.0.1",
-  "description": "A starter for Medusa projects.",
-  "author": "Medusa (https://medusajs.com)",
+  "description": "A plugin for Momo payments",
+  "author": "manhpvxj",
   "license": "MIT",
   "files": [
     "dist"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/manhpvxj/medusa-payment-momo.git"
+  },
   "keywords": [
-    "sqlite",
-    "postgres",
+    "medusa-payment-momo",
     "typescript",
     "ecommerce",
-    "headless",
     "medusa"
   ],
   "scripts": {
+    "build": "cross-env npm run clean && tsc -p tsconfig.json",
+    "clean": "cross-env ./node_modules/.bin/rimraf dist",
+    "prepare": "cross-env NODE_ENV=production npm run build",
     "prepublishOnly": "cross-env NODE_ENV=production tsc --build",
     "test": "jest --passWithNoTests src",
-    "build": "rimraf dist && tsc",
     "watch": "tsc --watch"
   },
   "dependencies": {
@@ -27,13 +31,14 @@
     "cors": "^2.8.5",
     "dotenv": "16.3.1",
     "express": "^4.17.2",
+    "medusa-core-utils": "^1.2.0",
     "medusa-interfaces": "^1.3.7",
-    "typeorm": "^0.3.16",
-    "medusa-core-utils": "^1.2.0"
+    "typeorm": "^0.3.16"
   },
   "devDependencies": {
     "@medusajs/medusa": "1.18.1",
     "@medusajs/types": "^1.8.10",
+    "@types/uuid": "^9.0.7",
     "cross-env": "^7.0.3",
     "eslint": "^6.8.0",
     "jest": "^27.3.1",
