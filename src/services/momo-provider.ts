@@ -62,15 +62,15 @@ class MomoProviderService extends AbstractPaymentProcessor {
   async getPaymentStatus(
     paymentSessionData: Record<string, unknown>
   ): Promise<PaymentSessionStatus> {
-    this.logger_.log("status", paymentSessionData);
     try {
       const order = (await this.retrievePayment(
         paymentSessionData
       )) as PaymentProcessorSessionResponse["session_data"];
-      this.logger_.info(order);
+      this.logger_.info(
+        `resultCode: ${order?.resultCode}, type: ${typeof order?.resultCode}`
+      );
       switch (order?.resultCode) {
         case 0:
-          return PaymentSessionStatus.PENDING;
         case 9000:
           return PaymentSessionStatus.AUTHORIZED;
         case 7000:
@@ -87,14 +87,14 @@ class MomoProviderService extends AbstractPaymentProcessor {
   async retrievePayment(
     paymentSessionData: Record<string, unknown>
   ): Promise<Record<string, unknown> | PaymentProcessorError> {
-    this.logger_.log("retrieve", paymentSessionData);
-
     try {
-      const id = paymentSessionData.id as string;
-      return (await this.momoService.getOrder({
+      const id = paymentSessionData?.orderId as string;
+      const payment = await this.momoService.getOrder({
         orderId: id,
         lang: ELanguage.VI,
-      })) as unknown as PaymentProcessorSessionResponse["session_data"];
+      });
+      this.logger_.info(`resultCode: ${payment.resultCode}`);
+      return payment as unknown as PaymentProcessorSessionResponse["session_data"];
     } catch (e) {
       return this.buildError("An error occurred in retrievePayment", e);
     }
@@ -158,11 +158,10 @@ class MomoProviderService extends AbstractPaymentProcessor {
         data: PaymentProcessorSessionResponse["session_data"];
       }
   > {
-    this.logger_.log("authorize", paymentSessionData);
     try {
+      console.log("authorize:", paymentSessionData);
       const stat = await this.getPaymentStatus(paymentSessionData);
-      const order = await this.retrievePayment(paymentSessionData);
-      return { data: order as Record<string, unknown>, status: stat };
+      return { data: paymentSessionData, status: stat };
     } catch (error) {
       return this.buildError("An error occurred in authorizePayment", error);
     }

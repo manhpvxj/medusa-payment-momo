@@ -84,49 +84,6 @@ export class MomoService {
     return await this.fetcher<ICheckPaymentStatusResponse>(config);
   }
 
-  public async IPNHandler(data: IPNDto): Promise<void> {
-    this.logger_.log("IPNHandler", JSON.stringify(data));
-    const rawSignature = `accessKey=${this.options_.accessKey}&amount=${data.amount}&extraData=${data.extraData}&message=${data.message}&orderId=${data.orderId}&orderInfo=${data.orderInfo}&orderType=${data.orderType}&partnerCode=${data.partnerCode}&payType=${data.payType}&requestId=${data.requestId}&responseTime=${data.responseTime}&resultCode=${data.resultCode}&transId=${data.transId}`;
-    const signature = crypto
-      .createHmac("sha256", this.options_.secretKey)
-      .update(rawSignature)
-      .digest("hex");
-    if (signature !== data.signature) {
-      // throw new HttpExc.BusinessException({
-      //   message: "Invalid signature",
-      // });
-      // throw new formatException('Invalid signature');
-    }
-    // const invoice = await this.invoiceRepository.findOneBy({
-    //   id: parseInt(
-    //     data.orderId.replace(
-    //       `INVOICE_${process.env.SR.PRODUCT_NAME}_`,
-    //       ""
-    //     ),
-    //     10
-    //   ),
-    //   status: EInvoiceStatus.UNPAID,
-    // });
-    // if (invoice && invoice.payment["requestId"] === data.requestId) {
-    //   if (data.resultCode === 0) {
-    //     invoice.status = EInvoiceStatus.PAID;
-    //     invoice.paymentAt = new Date(data.responseTime);
-    //   } else {
-    //     invoice.status = EInvoiceStatus.PAILED;
-    //     const variant = invoice.invoiceItems.map((item) => ({
-    //       ...item.variant,
-    //       quantity: item.variant.quantity + item.quantity,
-    //     }));
-    //     await this.variantRepository.save(variant);
-    //   }
-    //   const job = await this.queueInvoice.getJob(data.orderId);
-    //   if (job) {
-    //     await job.remove();
-    //   }
-    //   await this.invoiceRepository.save(invoice);
-    // }
-  }
-
   private async fetcher<T>(config: AxiosRequestConfig): Promise<T> {
     config = {
       ...config,

@@ -1,6 +1,6 @@
 {
   "name": "medusa-payment-momo",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "A plugin for Momo payments",
   "author": "manhpvxj",
   "license": "MIT",
